@@ -21,7 +21,7 @@ int main(int argc, const char *argv[]){
     vl_codec_handle_t handle_enc;
     if (argc < 9)
     {
-        printf("Amlogic AVC Encode API \n");
+        printf("Amlogic HEVC Encode API \n");
         printf(" usage: output [srcfile][outfile][width][height][gop][framerate][bitrate][num]\n");
         printf("  options  :\n");
         printf("  srcfile  : yuv data url in your root fs\n");
