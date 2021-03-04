@@ -1,0 +1,3 @@
+[submodule "hevc_enc"]
+	path = hevc_enc
+	url = https://github.com/xiane/libvphevcodec
