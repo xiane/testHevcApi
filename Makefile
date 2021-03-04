@@ -8,11 +8,15 @@ AMLENC_LIB=test.o
 LDFLAGS += -lm -lrt -Lhevc_enc -lvphevcodec
 CFLAGS+=-O2 -g
 
+LIB=hevc_enc
+
 $(TARGET):$(AMLENC_LIB)
-	$(CXX) $(CFLAGS) $(LDFLAGS) $< -o $(TARGET) $(LinkIn)
+	$(MAKE) -C $(LIB)
+	$(CXX) $(CFLAGS) $(LDFLAGS) $< -o $@ $(LinkIn)
 
 $(AMLENC_LIB):%.o:%.cpp
 	$(CXX) -c $(CFLAGS) $< -o $@
 clean:
 	-rm -f *.o
 	-rm -f $(TARGET)
+	$(MAKE) -C $(LIB) clean
