@@ -4,15 +4,15 @@ CXX := $(CROSS_COMPILE)g++
 
 TARGET=testHevcApi
 AMLENC_LIB=test.o
-#LDFLAGS += -lm -lrt -lge2d -Lhevc_enc -lvphevcodec
-LDFLAGS += -lm -lrt -Lhevc_enc -lvphevcodec
+LDFLAGS += -lm -lrt -Lhevc_enc  -lvphevcodec
+#LDFLAGS += -lge2d
 CFLAGS+=-O2 -g
 
 LIB=hevc_enc
 
 $(TARGET):$(AMLENC_LIB)
 	$(MAKE) -C $(LIB)
-	$(CXX) $(CFLAGS) $(LDFLAGS) $< -o $@ $(LinkIn)
+	$(CXX) $(CFLAGS) $< -o $@ $(LinkIn) $(LDFLAGS)
 
 $(AMLENC_LIB):%.o:%.cpp
 	$(CXX) -c $(CFLAGS) $< -o $@
