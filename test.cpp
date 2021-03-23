@@ -32,7 +32,7 @@ int main(int argc, const char *argv[]){
         printf("  framerate: framerate \n ");
         printf("  bitrate  : bit rate \n ");
         printf("  num      : encode frame count \n ");
-        printf("  fmt      : encode input fmt 0:nv21, 1:nv12, 2:RGB888\n ");
+        printf("  fmt      : encode input fmt 0:nv21, 1:nv12\n");
         return -1;
     }
     else
@@ -82,9 +82,6 @@ int main(int argc, const char *argv[]){
     printf("frm_num is: %d ;\n", num);
 
     unsigned int frameSize  = width * height * 3 / 2;
-    if (fmt == 2) {
-        frameSize = width * height * 3;
-    }
     unsigned int outputBufferLen = 1024 * 1024 * sizeof(char);
     unsigned char *inputBuffer = (unsigned char *)malloc(frameSize);
     unsigned char *outputBuffer = (unsigned char *)malloc(outputBufferLen);
