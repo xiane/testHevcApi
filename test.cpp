@@ -18,7 +18,7 @@ typedef struct codec_context {
     int framerate;
     int bitrate;
     int frame_count;
-    int input_format;
+    vl_img_format_t input_format;
     int gop;
 
     vl_codec_handle_t encoder;
@@ -47,7 +47,7 @@ int main(int argc, const char *argv[]){
         printf("  framerate: framerate \n ");
         printf("  bitrate  : bit rate \n ");
         printf("  num      : encode frame count \n ");
-        printf("  fmt      : encode input fmt 0:nv21, 1:nv12\n");
+        printf("  fmt      : encode input fmt 1:nv12, 2:nv21\n");
         return -1;
     }
     else
@@ -71,7 +71,7 @@ int main(int argc, const char *argv[]){
     ctx.framerate = atoi(argv[6]);
     ctx.bitrate = atoi(argv[7]);
     ctx.frame_count = atoi(argv[8]);
-    ctx.input_format = atoi(argv[9]);
+    ctx.input_format = (vl_img_format_t)atoi(argv[9]);
 
     if ((ctx.framerate < 0) || (ctx.framerate > 30))
     {
