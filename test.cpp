@@ -12,13 +12,28 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 
+typedef struct codec_context {
+    int width;
+    int height;
+    int framerate;
+    int bitrate;
+    int frame_count;
+    int input_format;
+    int gop;
+
+    vl_codec_handle_t encoder;
+
+    unsigned char *inputBuffer;
+    unsigned char *outputBuffer;
+    unsigned int outputBufferLen;
+} codec_ctx;
+
 int main(int argc, const char *argv[]){
-    int width, height, gop, framerate, bitrate, num;
+    codec_ctx ctx = { 0 };
     int outfd = -1;
     FILE *fp = NULL;
     int datalen = 0;
-    int fmt = 0;
-    vl_codec_handle_t handle_enc;
+
     if (argc < 9)
     {
         printf("Amlogic HEVC Encode API \n");
@@ -40,51 +55,52 @@ int main(int argc, const char *argv[]){
         printf("%s\n", argv[1]);
         printf("%s\n", argv[2]);
     }
-    width =  atoi(argv[3]);
-    if ((width < 1) || (width > 3840/*1920*/))
+    ctx.width =  atoi(argv[3]);
+    if ((ctx.width < 1) || (ctx.width > 3840/*1920*/))
     {
         printf("invalid width \n");
         return -1;
     }
-    height = atoi(argv[4]);
-    if ((height < 1) || (height > 2160/*1080*/))
+    ctx.height = atoi(argv[4]);
+    if ((ctx.height < 1) || (ctx.height > 2160/*1080*/))
     {
         printf("invalid height \n");
         return -1;
     }
-    gop = atoi(argv[5]);
-    framerate = atoi(argv[6]);
-    bitrate = atoi(argv[7]);
-    num = atoi(argv[8]);
-    fmt = atoi(argv[9]);
-    if ((framerate < 0) || (framerate > 30))
+    ctx.gop = atoi(argv[5]);
+    ctx.framerate = atoi(argv[6]);
+    ctx.bitrate = atoi(argv[7]);
+    ctx.frame_count = atoi(argv[8]);
+    ctx.input_format = atoi(argv[9]);
+
+    if ((ctx.framerate < 0) || (ctx.framerate > 30))
     {
         printf("invalid framerate \n");
         return -1;
     }
-    if (bitrate <= 0)
+    if (ctx.bitrate <= 0)
     {
         printf("invalid bitrate \n");
         return -1;
     }
-    if (num < 0)
+    if (ctx.frame_count < 0)
     {
         printf("invalid num \n");
         return -1;
     }
     printf("src_url is: %s ;\n", argv[1]);
     printf("out_url is: %s ;\n", argv[2]);
-    printf("width   is: %d ;\n", width);
-    printf("height  is: %d ;\n", height);
-    printf("gop     is: %d ;\n", gop);
-    printf("frmrate is: %d ;\n", framerate);
-    printf("bitrate is: %d ;\n", bitrate);
-    printf("frm_num is: %d ;\n", num);
+    printf("width   is: %d ;\n", ctx.width);
+    printf("height  is: %d ;\n", ctx.height);
+    printf("gop     is: %d ;\n", ctx.gop);
+    printf("frmrate is: %d ;\n", ctx.framerate);
+    printf("bitrate is: %d ;\n", ctx.bitrate);
+    printf("frm_num is: %d ;\n", ctx.frame_count);
 
-    unsigned int frameSize  = width * height * 3 / 2;
-    unsigned int outputBufferLen = 1024 * 1024 * sizeof(char);
-    unsigned char *inputBuffer = (unsigned char *)malloc(frameSize);
-    unsigned char *outputBuffer = (unsigned char *)malloc(outputBufferLen);
+    unsigned int frameSize  = ctx.width * ctx.height * 3 / 2;
+    ctx.outputBufferLen = 1024 * 1024 * sizeof(char);
+    ctx.inputBuffer = (unsigned char *)malloc(frameSize);
+    ctx.outputBuffer = (unsigned char *)malloc(ctx.outputBufferLen);
 
     fp = fopen((char *)argv[1], "rb");
     if (fp == NULL)
@@ -98,33 +114,33 @@ int main(int argc, const char *argv[]){
         printf("open dist file error!\n");
         goto exit;
     }
-    handle_enc = vl_video_encoder_init(CODEC_ID_H265, width, height, framerate, bitrate, gop);
-    while (num > 0) {
-        if (fread(inputBuffer, 1, frameSize, fp) != frameSize) {
+    ctx.encoder = vl_video_encoder_init(CODEC_ID_H265, ctx.width, ctx.height, ctx.framerate, ctx.bitrate, ctx.gop);
+    while (ctx.frame_count > 0) {
+        if (fread(ctx.inputBuffer, 1, frameSize, fp) != frameSize) {
             printf("read input file error!\n");
             break;
         }
-        memset(outputBuffer, 0, outputBufferLen);
-        datalen = vl_video_encoder_encode(handle_enc, FRAME_TYPE_AUTO, inputBuffer, outputBufferLen, outputBuffer, fmt);
+        memset(ctx.outputBuffer, 0, ctx.outputBufferLen);
+        datalen = vl_video_encoder_encode(ctx.encoder, FRAME_TYPE_AUTO, ctx.inputBuffer, ctx.outputBufferLen, ctx.outputBuffer, ctx.input_format);
         if (datalen >= 0)
-            write(outfd, (unsigned char *)outputBuffer, datalen);
+            write(outfd, (unsigned char *)ctx.outputBuffer, datalen);
         else {
             printf("encode error %d! continue ?\n",datalen);
             //break;
         }
-        num--;
+        ctx.frame_count--;
     }
-    vl_video_encoder_destory(handle_enc);
+    vl_video_encoder_destory(ctx.encoder);
     close(outfd);
     fclose(fp);
-    free(inputBuffer);
-    free(outputBuffer);
+    free(ctx.inputBuffer);
+    free(ctx.outputBuffer);
     return 0;
 exit:
-    if (inputBuffer)
-        free(inputBuffer);
-    if (outputBuffer)
-        free(outputBuffer);
+    if (ctx.inputBuffer)
+        free(ctx.inputBuffer);
+    if (ctx.outputBuffer)
+        free(ctx.outputBuffer);
     if (outfd >= 0)
         close(outfd);
     if (fp)
