@@ -130,7 +130,7 @@ int main(int argc, const char *argv[]){
         }
         ctx.frame_count--;
     }
-    vl_video_encoder_destory(ctx.encoder);
+    vl_video_encoder_destroy(ctx.encoder);
     close(outfd);
     fclose(fp);
     free(ctx.inputBuffer);
